@@ -1,2 +1,3 @@
 lca-venv
 lca-venv/*
+.env
