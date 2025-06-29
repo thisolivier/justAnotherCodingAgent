@@ -3,25 +3,12 @@ Node implementations for the LangGraph workflow.
 Each node represents a step in the agent's workflow.
 Reference: https://langchain-ai.github.io/langgraph/tutorials/introduction/
 """
-from typing import Dict, Any, List, Optional
-from langchain.schema import BaseMessage, HumanMessage
-from agent.tools import get_tools
+from langchain.schema import HumanMessage
 from agent.config import load_project_config
 import json
 from datetime import datetime
 from pathlib import Path
-from pydantic import BaseModel, Field
-from agent.lib.context import Context
-
-class AgentState(BaseModel):
-    feature_request: str
-    project_path: Path
-    project_config: Dict[str, Any] = Field(default_factory=dict)
-    plan: List[str] = Field(default_factory=list)
-    code_changes: List[Dict[str, str]] = Field(default_factory=list)
-    test_results: Optional[str] = None
-    branch_name: Optional[str] = None
-    messages: List[BaseMessage] = Field(default_factory=list)
+from ..lib import Context, AgentState
 
 def load_config_node(state: AgentState) -> AgentState:
     """Load project configuration from YAML/JSON file."""
@@ -61,56 +48,6 @@ def plan_node(state: AgentState, llm) -> AgentState:
     
     state.plan = steps
     state.messages.append(HumanMessage(content=f"Created plan with {len(steps)} steps"))
-    return state
-
-def generate_code_node(state: AgentState, context: Context, llm) -> AgentState:
-    """
-    Generate or modify code based on the plan.
-    This node uses tools to read existing files and write new ones.
-    """
-    code_changes = []
-    
-    # For each step in the plan, determine if code needs to be generated
-    for step in state.plan[:3]:  # Limit to first 3 steps for MVP
-        prompt = f"""
-        Implement the following step from the plan:
-        {step}
-        
-        Project language: {state.project_config['project']['language']}
-        Code style: {json.dumps(state.project_config.get('code_style', {}), indent=2)}
-        
-        If this step requires code changes:
-        1. Specify the file path
-        2. Provide the complete file content
-        3. Follow the project's coding standards
-        
-        Format your response as:
-        FILE_PATH: <path>
-        CONTENT:
-        <file content>
-        """
-        
-        response = llm.invoke(prompt)
-        content = response.content if hasattr(response, 'content') else str(response)
-        
-        # Simple parsing - in production, use more robust parsing
-        if "FILE_PATH:" in content and "CONTENT:" in content:
-            parts = content.split("CONTENT:")
-            file_path = parts[0].replace("FILE_PATH:", "").strip()
-            file_content = parts[1].strip()
-            
-            # Use write tool
-            write_tool = context.tools["write_file"]
-            result = write_tool.run({"file_path": file_path, "content": file_content})
-            
-            code_changes.append({
-                "file": file_path,
-                "action": "created/modified",
-                "result": result
-            })
-    
-    state.code_changes = code_changes
-    state.messages.append(HumanMessage(content=f"Generated {len(code_changes)} code changes"))
     return state
 
 def run_tests_node(state: AgentState, context: Context) -> AgentState:

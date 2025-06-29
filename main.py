@@ -10,8 +10,10 @@ from os import PathLike
 from typing import Union
 from langchain.schema import HumanMessage
 from agent.graph import create_agent_graph
-from agent.nodes import AgentState
+from agent.lib import AgentState
 from dotenv import load_dotenv
+
+sys.path.insert(0, os.path.dirname(__file__))
 
 PathType = Union[str, PathLike[str]]
 
@@ -38,7 +40,7 @@ def main(feature_request: str, project_path: PathType):
     # Initialize state with project path
     initial_state = AgentState(
         feature_request=feature_request,
-        project_path=str(project_path),  # Add project path to state
+        project_path=project_path,
         project_config={},
         plan=[],
         code_changes=[],

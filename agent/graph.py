@@ -1,8 +1,8 @@
 """Main LangGraph workflow definition with project awareness."""
 from langgraph.graph import StateGraph, END
 from pathlib import Path
-from agent.nodes import (
-    AgentState,
+from .lib import AgentState, Context
+from .nodes import (
     load_config_node,
     plan_node,
     generate_code_node,
@@ -12,7 +12,6 @@ from agent.nodes import (
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 import os
-from agent.lib.context import Context
 from agent.tools import get_tools
 
 def create_agent_graph(project_path: Path):
