@@ -1,6 +1,7 @@
 from .helpers import ProjectAwareTool
 from pydantic import BaseModel, Field
 from pathlib import Path
+from typing import Type
 import subprocess
 import json
 
@@ -16,7 +17,7 @@ class SymbolIndexTool(ProjectAwareTool):
         "Uses universal-ctags on the provided file list and returns a dict mapping "
         "file paths to lists of symbol objects (name, kind, line)."
     )
-    args_schema = SymbolIndexInput
+    args_schema: Type[SymbolIndexInput] = SymbolIndexInput
 
     def _run(self, file_paths: list[str]) -> dict[str, list[dict]]:
         try:

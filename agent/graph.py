@@ -7,7 +7,8 @@ from .nodes import (
     plan_node,
     generate_code_node,
     run_tests_node,
-    create_review_doc_node
+    create_review_doc_node,
+    bootstrap_codebase
 )
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
@@ -37,6 +38,7 @@ def create_agent_graph(project_path: Path):
     
     # Add nodes with project context
     workflow.add_node("load_config", lambda state: load_config_node(state, ctx))
+    workflow.add_node("bootstrap_codebase", lambda state: bootstrap_codebase(state, ctx))
     workflow.add_node("plan_code", lambda state: plan_node(state, llm))
     workflow.add_node("generate_code", lambda state: generate_code_node(state, ctx, llm))
     workflow.add_node("run_tests", lambda state: run_tests_node(state, ctx))

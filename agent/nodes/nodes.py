@@ -10,9 +10,9 @@ from datetime import datetime
 from pathlib import Path
 from ..lib import Context, AgentState
 
-def load_config_node(state: AgentState) -> AgentState:
+def load_config_node(state: AgentState, context: Context) -> AgentState:
     """Load project configuration from YAML/JSON file."""
-    project_path = Path(state.project_path)
+    project_path = Path(context.project_path)
     config_path = project_path / "config.yaml"
     
     config = load_project_config(str(config_path))

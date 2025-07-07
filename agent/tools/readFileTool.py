@@ -10,7 +10,7 @@ class ReadFileInput(BaseModel):
 class ReadFileTool(ProjectAwareTool):
     name: str = "read_file"
     description: str = "Read contents of a file relative to project root"
-    args_schema = ReadFileInput
+    args_schema: Type[ReadFileInput] = ReadFileInput
 
     def _run(self, file_path: str) -> str:
         try:

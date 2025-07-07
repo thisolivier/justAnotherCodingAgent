@@ -11,7 +11,7 @@ class WriteFileInput(BaseModel):
 class WriteFileTool(ProjectAwareTool):
     name: str = "write_file"
     description: str = "Write content to a file relative to project root"
-    args_schema = WriteFileInput
+    args_schema: Type[WriteFileInput] = WriteFileInput
 
     def _run(self, file_path: str, content: str) -> str:
         try:

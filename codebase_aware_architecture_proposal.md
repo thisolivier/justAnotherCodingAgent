@@ -34,7 +34,7 @@ Acts like the project architect.
 
 Behaves like the project manager.
 
-- **Responsibility**: Turn the approved `planning_doc` into reviewable steps (ideally small, though sometimes large refactors are unavoidable). It should have a preference for keeping the code-base running without errors at each step (e.g. using modular code with abstract interfaces, or stubbing functions which will later be used which provide hardcoded values).
+- **Responsibility**: Turn the approved `planning_doc` into reviewable steps (ideally small, though sometimes large refactors are unavoidable). It should have a preference for keeping the code-base running without errors at each step (e.g. using modular code with abstract interfaces, or stubbing functions which will later be used which provide hardcoded values). It should use a RAG approach, looking up specific functions or entire files to confirm its initial plan, before giving a second pass (max three passes).
 - **Inputs**
   - `planning_docs` (from human inpur and strategy planner node)
 - **Outputs**

@@ -13,7 +13,7 @@ class DiffManifestTool(ProjectAwareTool):
         "Update the file manifest based on git diffs. "
         "Returns the updated manifest and list of files to re-index (added or modified)."
     )
-    args_schema = DiffManifestInput
+    args_schema: Type[DiffManifestInput] = DiffManifestInput
 
     def _run(self, file_manifest: list[str]) -> dict:
         try:

@@ -1,10 +1,6 @@
 from pathlib import Path
-import os
 import fnmatch
 from .helpers import ProjectAwareTool
-
-# Helper and base classes assumed to be available in the environment
-# from your_helpers import sanitize_path, ProjectAwareTool
 
 class FileEnumerateTool(ProjectAwareTool):
     name: str = "file_enumerate"
@@ -14,45 +10,35 @@ class FileEnumerateTool(ProjectAwareTool):
     )
 
     def _run(self) -> list[str]:
-        try:
-            project_root = self.project_path
-            if not project_root.is_dir():
-                return []
+        project_root = Path(self.project_path)
 
-            # Load ignore patterns from .gitignore
-            gitignore_path = project_root / ".gitignore"
-            patterns_to_skip: list[str] = []
-            if gitignore_path.is_file():
-                for line in gitignore_path.read_text(encoding='utf-8').splitlines():
-                    stripped = line.strip()
-                    if not stripped or stripped.startswith('#'):
-                        continue
-                    patterns_to_skip.append(stripped)
+        # 1) Fail loudly if the path isn’t right
+        if not project_root.exists():
+            raise FileNotFoundError(f"No such path: {project_root!r}")
+        if not project_root.is_dir():
+            raise NotADirectoryError(f"Not a directory: {project_root!r}")
 
-            file_paths: list[str] = []
-            for root_fs, dirs, files in os.walk(project_root):
-                root_path = Path(root_fs)
-                relative_root = root_path.relative_to(project_root)
-                relative_root_str = str(relative_root).replace("\\", "/")
+        # 2) (Optional) load your .gitignore patterns here
+        gitignore = project_root / ".gitignore"
+        patterns = []
+        if gitignore.is_file():
+          patterns = [l.strip() for l in gitignore.read_text().splitlines()
+            if l.strip() and not l.startswith("#")]
 
-                # Skip ignored directories
-                dirs[:] = [dir for dir in dirs
-                           if not any(
-                               fnmatch.fnmatch(
-                                   f"{relative_root_str}/{dir}" if relative_root_str else dir,
-                                   pat.rstrip('/')
-                               )
-                               for pat in patterns_to_skip
-                           )]
+        # 3) Walk with pathlib.rglob (simpler than os.walk + Path conversions)
+        all_files: list[str] = []
+        for path in project_root.rglob("*"):
+            if not path.is_file():
+                continue
+            rel = path.relative_to(project_root)
+            rel_str = str(rel).replace("\\", "/")
 
-                for file_location in files:
-                    relative_file_location = (
-                        f"{relative_root_str}/{file_location}" if relative_root_str else file_location
-                    )
-                    if any(fnmatch.fnmatch(relative_file_location, pat) for pat in patterns_to_skip):
-                        continue
-                    file_paths.append(relative_file_location)
+            # 4) (Optional) skip based on patterns
+            if any(fnmatch.fnmatch(rel_str, pat) for pat in patterns):
+               print(f"[DEBUG] skipping {rel_str} because of .gitignore")
+               continue
 
-            return file_paths
-        except Exception:
-            return []
+            all_files.append(rel_str)
+
+        print(f"[DEBUG] FileEnumerateTool found {len(all_files)} files.")
+        return all_files
