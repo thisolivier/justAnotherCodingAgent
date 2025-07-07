@@ -40,7 +40,6 @@ def main(feature_request: str, project_path: PathType):
     # Initialize state with project path
     initial_state = AgentState(
         feature_request=feature_request,
-        project_path=project_path,
         project_config={},
         plan=[],
         code_changes=[],
