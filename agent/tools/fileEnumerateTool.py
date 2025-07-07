@@ -13,21 +13,20 @@ class FileEnumerateTool(ProjectAwareTool):
     def _run(self) -> list[str]:
         try:
             project_root = self.project_path
-            print(f"[DEBUG] project_root repr={project_root!r}, type={type(project_root)}")
-            print(f"[DEBUG] project_root resolved={project_root.resolve()}")
+            if not project_root.exists():
+                raise FileNotFoundError(f"No such path: {project_root!r}")
             if not project_root.is_dir():
-                print("OH NO!")
-                return []
+                raise NotADirectoryError(f"Not a directory: {project_root!r}")
 
             # Load ignore patterns from .gitignore
             gitignore_path = project_root / ".gitignore"
             patterns_to_skip: list[str] = []
             if gitignore_path.is_file():
                 for line in gitignore_path.read_text(encoding='utf-8').splitlines():
-                    stripped = line.strip()
-                    if not stripped or stripped.startswith('#'):
+                    strippedLine = line.strip()
+                    if not strippedLine or strippedLine.startswith('#'):
                         continue
-                    patterns_to_skip.append(stripped)
+                    patterns_to_skip.append(strippedLine)
 
             print("Preparing to add paths")
             file_paths: list[str] = []
